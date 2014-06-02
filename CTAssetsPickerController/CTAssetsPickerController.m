@@ -165,8 +165,8 @@ NSString * const CTAssetsPickerSelectedAssetsChangedNotification = @"CTAssetsPic
 
 - (void)toggleDoneButton
 {
-    for (UIViewController *viewController in self.viewControllers)
-        viewController.navigationItem.rightBarButtonItem.enabled = (self.selectedAssets.count > 0);
+//    for (UIViewController *viewController in self.viewControllers)
+//        viewController.navigationItem.rightBarButtonItem.enabled = (self.selectedAssets.count > 0);
 }
 
 
