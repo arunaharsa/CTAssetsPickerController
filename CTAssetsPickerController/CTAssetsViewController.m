@@ -137,7 +137,7 @@ NSString * const CTAssetsSupplementaryViewIdentifier = @"CTAssetsSupplementaryVi
 - (void)setupButtons
 {
     self.navigationItem.rightBarButtonItem =
-    [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"Done", nil)
+    [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"Use", nil)
                                      style:UIBarButtonItemStyleDone
                                     target:self.picker
                                     action:@selector(finishPickingAssets:)];
@@ -167,16 +167,9 @@ NSString * const CTAssetsSupplementaryViewIdentifier = @"CTAssetsSupplementaryVi
 	[navTitleButton.titleLabel setFont:[UIFont boldSystemFontOfSize:17]];
 	
 	// dropdown image
-	[navTitleButton setImage:[UIImage imageNamed:@"UIButtonBarArrowDown"] forState:UIControlStateNormal];
+	[navTitleButton setImage:[UIImage imageNamed:@"kb-arrow-down"] forState:UIControlStateNormal];
 	[navTitleButton setTintColor:[UIColor blackColor]];
-	//	navTitleButton.imageView.frame = CGRectMake(0, 0, 9.0, 6.0);
-	//	navTitleButton.imageView.contentMode = UIViewContentModeScaleAspectFill;
-	//	navTitleButton.clipsToBounds = YES;
-	
-	// TODO: set it on the right of the text
-	//	navTitleButton.titleLabel.frame = CGRectMake(0, 0, 180.0, navTitleButton.titleLabel.frame.size.height);
-	//	navTitleButton.titleLabel.clipsToBounds = YES;
-	[navTitleButton setImageEdgeInsets:UIEdgeInsetsMake(0, navTitleButton.titleLabel.frame.size.width, 0, -navTitleButton.titleLabel.frame.size.width)];
+	[navTitleButton setImageEdgeInsets:UIEdgeInsetsMake(0, navTitleButton.titleLabel.frame.size.width, 0, -navTitleButton.titleLabel.frame.size.width - 10.0)];
 	[navTitleButton setTitleEdgeInsets:UIEdgeInsetsMake(0, -navTitleButton.imageView.frame.size.width, 0, navTitleButton.imageView.frame.size.width)];
 	self.navigationItem.titleView = navTitleButton;
 	
