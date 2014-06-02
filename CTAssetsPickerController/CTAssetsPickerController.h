@@ -37,6 +37,8 @@
  *  A controller that allows picking multiple photos and videos from user's photo library.
  */
 @interface CTAssetsPickerController : UINavigationController
+- (id)initWithGroups:(NSArray *)groups;
++ (ALAssetsLibrary *)defaultAssetsLibrary;
 
 /**
  *  The assets picker’s delegate object.
@@ -52,7 +54,7 @@
  *  The selected assets.
  *
  *  It contains selected `ALAsset` objects. The order of the objects is the selection order.
- *  
+ *
  *  You can use this property to select assets initially when presenting the picker.
  */
 @property (nonatomic, strong) NSMutableArray *selectedAssets;
@@ -64,7 +66,6 @@
  *  set this property’s value to `NO`.
  */
 @property (nonatomic, assign) BOOL showsCancelButton;
-
 
 /**
  *  @name Managing Selections

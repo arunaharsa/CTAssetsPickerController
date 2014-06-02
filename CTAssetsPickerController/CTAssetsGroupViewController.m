@@ -221,8 +221,7 @@
 
 - (void)removeNotificationObserver
 {
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:ALAssetsLibraryChangedNotification object:nil];
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:CTAssetsPickerSelectedAssetsChangedNotification object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 

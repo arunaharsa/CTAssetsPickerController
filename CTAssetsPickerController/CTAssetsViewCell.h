@@ -33,6 +33,8 @@
 @interface CTAssetsViewCell : UICollectionViewCell
 
 @property (nonatomic, assign, getter = isEnabled) BOOL enabled;
+@property (nonatomic) NSUInteger count;
+@property (nonatomic, strong) UILabel *numberLabel;
 
 - (void)bind:(ALAsset *)asset;
 

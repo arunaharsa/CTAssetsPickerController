@@ -28,7 +28,8 @@
 #import "CTAssetsPickerConstants.h"
 #import "CTAssetsPickerController.h"
 #import "CTAssetsGroupViewController.h"
-
+#import "CTAssetsViewController.h"
+#import "ALAsset+isEqual.h"
 
 
 NSString * const CTAssetsPickerSelectedAssetsChangedNotification = @"CTAssetsPickerSelectedAssetsChangedNotification";
@@ -38,6 +39,7 @@ NSString * const CTAssetsPickerSelectedAssetsChangedNotification = @"CTAssetsPic
 @interface CTAssetsPickerController ()
 
 @property (nonatomic, strong) ALAssetsLibrary *assetsLibrary;
+@property (nonatomic, strong) NSArray *assetsGroups;
 
 @end
 
@@ -57,7 +59,7 @@ NSString * const CTAssetsPickerSelectedAssetsChangedNotification = @"CTAssetsPic
         _assetsFilter       = [ALAssetsFilter allAssets];
         _selectedAssets     = [[NSMutableArray alloc] init];
         _showsCancelButton  = YES;
-
+		
         self.preferredContentSize = kPopoverContentSize;
         
         [self addKeyValueObserver];
@@ -65,6 +67,41 @@ NSString * const CTAssetsPickerSelectedAssetsChangedNotification = @"CTAssetsPic
     
     return self;
 }
+
+- (id)initWithGroups:(NSArray *)groups{
+    
+    CTAssetsViewController *vc = [[CTAssetsViewController alloc]init];
+	int groupIndex = 0;
+    if (groups){
+		
+		// find the array index of camera roll / saved photos
+		for (int i = 0; i < groups.count; i++) {
+			if ([[groups[i] valueForProperty:ALAssetsGroupPropertyType] intValue] == ALAssetsGroupSavedPhotos) {
+				groupIndex = i;
+				break;
+			}
+		}
+		
+        vc.assetsGroup = groups[groupIndex];
+        if (self = [super initWithRootViewController:vc]){
+            _assetsLibrary      = [self.class defaultAssetsLibrary];
+            _assetsFilter       = [ALAssetsFilter allAssets];
+            _selectedAssets     = [[NSMutableArray alloc] init];
+            _showsCancelButton  = YES;
+            
+            _assetsGroups = groups;
+            
+            self.preferredContentSize = kPopoverContentSize;
+            
+            [self addKeyValueObserver];
+        }
+    } else{
+        self = [self init];
+    }
+    
+    return self;
+}
+
 
 - (void)viewDidLoad
 {
@@ -139,6 +176,7 @@ NSString * const CTAssetsPickerSelectedAssetsChangedNotification = @"CTAssetsPic
 {
     [[NSNotificationCenter defaultCenter] postNotificationName:CTAssetsPickerSelectedAssetsChangedNotification
                                                         object:sender];
+    
 }
 
 
@@ -315,7 +353,7 @@ NSString * const CTAssetsPickerSelectedAssetsChangedNotification = @"CTAssetsPic
     
     NSDictionary *viewsDictionary = NSDictionaryOfVariableBindings(title, message);
     [centerView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[title]-[message]|" options:0 metrics:nil views:viewsDictionary]];
-
+	
     return [self specialViewWithCenterView:centerView];
 }
 
@@ -362,8 +400,8 @@ NSString * const CTAssetsPickerSelectedAssetsChangedNotification = @"CTAssetsPic
     UIBarButtonItem *title =
     [[UIBarButtonItem alloc] initWithTitle:self.toolbarTitle
                                      style:UIBarButtonItemStylePlain
-                                    target:nil
-                                    action:nil];
+                                    target:self
+                                    action:@selector(willSwitchAssetsGroup:)];
     
     NSDictionary *attributes = @{NSForegroundColorAttributeName : [UIColor blackColor]};
     
@@ -403,6 +441,29 @@ NSString * const CTAssetsPickerSelectedAssetsChangedNotification = @"CTAssetsPic
 {
     if ([self.delegate respondsToSelector:@selector(assetsPickerController:didFinishPickingAssets:)])
         [self.delegate assetsPickerController:self didFinishPickingAssets:self.selectedAssets];
+}
+
+- (void)cancelPickingAssets:(id)sender
+{
+	[self dismissViewControllerAnimated:YES completion:nil];
+}
+
+
+-(void)willSwitchAssetsGroup:(id)sender{
+    
+    CTAssetsViewController *vc = [self.viewControllers lastObject];
+    
+    int currentIndex = (int)[self.assetsGroups indexOfObject:vc.assetsGroup];
+    int nextIndex = (currentIndex+1) % self.assetsGroups.count;
+    
+    [self setAssetsGroup:self.assetsGroups[nextIndex]];
+}
+
+- (void)setAssetsGroup:(ALAssetsGroup*)assetsGroup{
+    CTAssetsViewController *vc = [self.viewControllers lastObject];
+    vc.assetsGroup = assetsGroup;
+    [[NSNotificationCenter defaultCenter] postNotificationName:ALAssetsLibraryChangedNotification
+                                                        object:nil];
 }
 
 

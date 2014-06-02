@@ -41,6 +41,8 @@ NSString * const CTAssetsSupplementaryViewIdentifier = @"CTAssetsSupplementaryVi
 @interface CTAssetsPickerController ()
 
 - (void)finishPickingAssets:(id)sender;
+- (void)cancelPickingAssets:(id)sender;
+- (void)willSwitchAssetsGroup:(id)sender;
 
 - (NSString *)toolbarTitle;
 - (UIView *)noAssetsView;
@@ -61,7 +63,9 @@ NSString * const CTAssetsSupplementaryViewIdentifier = @"CTAssetsSupplementaryVi
 
 
 @implementation CTAssetsViewController
-
+{
+	NSUInteger _selectCounter;
+}
 
 - (id)init
 {
@@ -133,12 +137,17 @@ NSString * const CTAssetsSupplementaryViewIdentifier = @"CTAssetsSupplementaryVi
 - (void)setupButtons
 {
     self.navigationItem.rightBarButtonItem =
-    [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"Done", nil)
+    [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"Use", nil)
                                      style:UIBarButtonItemStyleDone
                                     target:self.picker
                                     action:@selector(finishPickingAssets:)];
-    
-    self.navigationItem.rightBarButtonItem.enabled = (self.picker.selectedAssets.count > 0);
+	
+	//    self.navigationItem.rightBarButtonItem.enabled = (self.picker.selectedAssets.count > 0);
+	self.navigationItem.leftBarButtonItem =
+	[[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"Cancel", nil)
+                                     style:UIBarButtonItemStylePlain
+                                    target:self.picker
+                                    action:@selector(cancelPickingAssets:)];
 }
 
 - (void)setupToolbar
@@ -148,8 +157,29 @@ NSString * const CTAssetsSupplementaryViewIdentifier = @"CTAssetsSupplementaryVi
 
 - (void)setupAssets
 {
-    self.title = [self.assetsGroup valueForProperty:ALAssetsGroupPropertyName];
-    
+	UIButton *navTitleButton = [UIButton buttonWithType:UIButtonTypeSystem];
+	navTitleButton.frame = CGRectMake(0, 0, 190, 70);
+	[navTitleButton setTitle:[self.assetsGroup valueForProperty:ALAssetsGroupPropertyName] forState:UIControlStateNormal];
+	[navTitleButton addTarget:self.picker action:@selector(willSwitchAssetsGroup:) forControlEvents:UIControlEventTouchUpInside];
+	
+	// button text style
+	[navTitleButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+	[navTitleButton.titleLabel setFont:[UIFont boldSystemFontOfSize:17]];
+	
+	// dropdown image
+	[navTitleButton setImage:[UIImage imageNamed:@"UIButtonBarArrowDown"] forState:UIControlStateNormal];
+	[navTitleButton setTintColor:[UIColor blackColor]];
+	//	navTitleButton.imageView.frame = CGRectMake(0, 0, 9.0, 6.0);
+	//	navTitleButton.imageView.contentMode = UIViewContentModeScaleAspectFill;
+	//	navTitleButton.clipsToBounds = YES;
+	
+	// TODO: set it on the right of the text
+	//	navTitleButton.titleLabel.frame = CGRectMake(0, 0, 180.0, navTitleButton.titleLabel.frame.size.height);
+	//	navTitleButton.titleLabel.clipsToBounds = YES;
+	[navTitleButton setImageEdgeInsets:UIEdgeInsetsMake(0, navTitleButton.titleLabel.frame.size.width, 0, -navTitleButton.titleLabel.frame.size.width)];
+	[navTitleButton setTitleEdgeInsets:UIEdgeInsetsMake(0, -navTitleButton.imageView.frame.size.width, 0, navTitleButton.imageView.frame.size.width)];
+	self.navigationItem.titleView = navTitleButton;
+	
     if (!self.assets)
         self.assets = [[NSMutableArray alloc] init];
     else
@@ -158,7 +188,7 @@ NSString * const CTAssetsSupplementaryViewIdentifier = @"CTAssetsSupplementaryVi
     ALAssetsGroupEnumerationResultsBlock resultsBlock = ^(ALAsset *asset, NSUInteger index, BOOL *stop)
     {
         if (asset)
-            [self.assets addObject:asset];
+            [self.assets insertObject:asset atIndex:0];
         else
             [self reloadData];
     };
@@ -211,8 +241,7 @@ NSString * const CTAssetsSupplementaryViewIdentifier = @"CTAssetsSupplementaryVi
 
 - (void)removeNotificationObserver
 {
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:ALAssetsLibraryChangedNotification object:nil];
-    [[NSNotificationCenter defaultCenter] removeObserver:self name:CTAssetsPickerSelectedAssetsChangedNotification object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 
@@ -263,12 +292,12 @@ NSString * const CTAssetsSupplementaryViewIdentifier = @"CTAssetsSupplementaryVi
 
 - (void)reloadData
 {
+	[self.collectionView reloadData];
     if (self.assets.count > 0)
     {
-        [self.collectionView reloadData];
-        
         if (CGPointEqualToPoint(self.collectionView.contentOffset, CGPointZero))
             [self.collectionView setContentOffset:CGPointMake(0, self.collectionViewLayout.collectionViewContentSize.height)];
+		[self showHaveAssets];
     }
     else
     {
@@ -284,6 +313,12 @@ NSString * const CTAssetsSupplementaryViewIdentifier = @"CTAssetsSupplementaryVi
     self.collectionView.backgroundView = [self.picker noAssetsView];
 }
 
+- (void)showHaveAssets
+{
+	UIView *defaultView = [[UIView alloc] initWithFrame:self.view.frame];
+	defaultView.backgroundColor = [UIColor whiteColor];
+	self.collectionView.backgroundView = defaultView;
+}
 
 #pragma mark - Collection View Data Source
 
@@ -316,6 +351,7 @@ NSString * const CTAssetsSupplementaryViewIdentifier = @"CTAssetsSupplementaryVi
     if ([self.picker.selectedAssets containsObject:asset])
     {
         cell.selected = YES;
+		cell.count = [self.picker.selectedAssets indexOfObject:asset] + 1;
         [collectionView selectItemAtIndexPath:indexPath animated:NO scrollPosition:UICollectionViewScrollPositionNone];
     }
     
@@ -344,7 +380,7 @@ NSString * const CTAssetsSupplementaryViewIdentifier = @"CTAssetsSupplementaryVi
     ALAsset *asset = [self.assets objectAtIndex:indexPath.row];
     
     CTAssetsViewCell *cell = (CTAssetsViewCell *)[collectionView cellForItemAtIndexPath:indexPath];
-    
+	
     if (!cell.isEnabled)
         return NO;
     else if ([self.picker.delegate respondsToSelector:@selector(assetsPickerController:shouldSelectAsset:)])
@@ -358,7 +394,10 @@ NSString * const CTAssetsSupplementaryViewIdentifier = @"CTAssetsSupplementaryVi
     ALAsset *asset = [self.assets objectAtIndex:indexPath.row];
     
     [self.picker selectAsset:asset];
-    
+	
+	CTAssetsViewCell *cell = (CTAssetsViewCell *)[collectionView cellForItemAtIndexPath:indexPath];
+	cell.count = [self.picker.selectedAssets count];
+	
     if ([self.picker.delegate respondsToSelector:@selector(assetsPickerController:didSelectAsset:)])
         [self.picker.delegate assetsPickerController:self.picker didSelectAsset:asset];
 }
@@ -378,6 +417,9 @@ NSString * const CTAssetsSupplementaryViewIdentifier = @"CTAssetsSupplementaryVi
     ALAsset *asset = [self.assets objectAtIndex:indexPath.row];
     
     [self.picker deselectAsset:asset];
+	
+	// to reload cell numbers
+	[self reloadData];
     
     if ([self.picker.delegate respondsToSelector:@selector(assetsPickerController:didDeselectAsset:)])
         [self.picker.delegate assetsPickerController:self.picker didDeselectAsset:asset];

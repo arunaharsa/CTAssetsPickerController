@@ -27,8 +27,10 @@
 
 #import "CTAssetsViewCell.h"
 #import "NSDate+timeDescription.h"
+#import <QuartzCore/QuartzCore.h>
 
-
+#define kNumberLabelSize 20.0
+#define kSelectedCellBorderSize 4.0
 
 @interface CTAssetsViewCell ()
 
@@ -37,6 +39,8 @@
 @property (nonatomic, copy) NSString *type;
 @property (nonatomic, copy) NSString *title;
 @property (nonatomic, strong) UIImage *videoImage;
+
+
 
 @end
 
@@ -53,6 +57,7 @@ static UIColor *titleColor;
 static UIImage *checkedIcon;
 static UIColor *selectedColor;
 static UIColor *disabledColor;
+static UIColor *borderColor;
 
 + (void)initialize
 {
@@ -63,6 +68,8 @@ static UIColor *disabledColor;
     checkedIcon     = [UIImage imageNamed:@"CTAssetsPickerChecked"];
     selectedColor   = [UIColor colorWithWhite:1 alpha:0.3];
     disabledColor   = [UIColor colorWithWhite:1 alpha:0.9];
+	borderColor		= [UIColor colorWithRed:15.0/255.0 green:151.0/255.0 blue:1.0 alpha:1.0];
+	
 }
 
 - (id)initWithFrame:(CGRect)frame
@@ -73,6 +80,17 @@ static UIColor *disabledColor;
         self.isAccessibilityElement = YES;
         self.accessibilityTraits    = UIAccessibilityTraitImage;
         self.enabled                = YES;
+		self.numberLabel			= [[UILabel alloc] initWithFrame:
+									   CGRectMake(CGRectGetMaxX(self.contentView.frame) - kNumberLabelSize, CGRectGetMinY(self.contentView.frame), kNumberLabelSize, kNumberLabelSize)];
+		self.numberLabel.layer.cornerRadius			= 4.0f;
+		self.numberLabel.adjustsFontSizeToFitWidth	= YES;
+		self.numberLabel.textColor					= [UIColor whiteColor];
+		self.numberLabel.backgroundColor			= borderColor;
+		self.numberLabel.clipsToBounds				= YES;
+		self.numberLabel.font = [UIFont boldSystemFontOfSize:12];
+		[self.numberLabel setTextAlignment:NSTextAlignmentCenter];
+		
+		[self.contentView addSubview:self.numberLabel];
     }
     
     return self;
@@ -109,8 +127,12 @@ static UIColor *disabledColor;
     if (!self.isEnabled)
         [self drawDisabledViewInRect:rect];
     
-    else if (self.selected)
+    else if (self.selected) {
         [self drawSelectedViewInRect:rect];
+		[self configureSelectedViewInRect:rect];
+	}
+	else
+		[self configureUnselectedViewInRect:rect];
 }
 
 - (void)drawThumbnailInRect:(CGRect)rect
@@ -169,8 +191,27 @@ static UIColor *disabledColor;
     CGContextRef context = UIGraphicsGetCurrentContext();
     CGContextSetFillColorWithColor(context, selectedColor.CGColor);
     CGContextFillRect(context, rect);
-    
-    [checkedIcon drawAtPoint:CGPointMake(CGRectGetMaxX(rect) - checkedIcon.size.width, CGRectGetMinY(rect))];
+	
+	//	[checkedIcon drawAtPoint:CGPointMake(CGRectGetMaxX(rect) - checkedIcon.size.width, CGRectGetMinY(rect))];
+	
+}
+
+#pragma mark - Configure Rect
+- (void)configureSelectedViewInRect:(CGRect)rect
+{
+	NSString *number = [NSString stringWithFormat:@"%lu", self.count];
+	self.numberLabel.hidden = NO;
+	self.numberLabel.text = number;
+	
+	self.contentView.layer.borderColor = borderColor.CGColor;
+	self.contentView.layer.borderWidth = kSelectedCellBorderSize;
+	
+}
+
+- (void)configureUnselectedViewInRect:(CGRect)rect
+{
+	self.numberLabel.hidden = YES;
+	self.contentView.layer.borderWidth = 0;
 }
 
 
