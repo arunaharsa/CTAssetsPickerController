@@ -167,7 +167,7 @@ NSString * const CTAssetsSupplementaryViewIdentifier = @"CTAssetsSupplementaryVi
 	[navTitleButton.titleLabel setFont:[UIFont boldSystemFontOfSize:17]];
 	
 	// dropdown image
-	[navTitleButton setImage:[UIImage imageNamed:@"kb-arrow-down"] forState:UIControlStateNormal];
+	[navTitleButton setImage:[UIImage imageNamed:@"CTAssetsDropdownTitle"] forState:UIControlStateNormal];
 	[navTitleButton setTintColor:[UIColor blackColor]];
 	[navTitleButton setImageEdgeInsets:UIEdgeInsetsMake(0, navTitleButton.titleLabel.frame.size.width, 0, -navTitleButton.titleLabel.frame.size.width - 10.0)];
 	[navTitleButton setTitleEdgeInsets:UIEdgeInsetsMake(0, -navTitleButton.imageView.frame.size.width, 0, navTitleButton.imageView.frame.size.width)];
