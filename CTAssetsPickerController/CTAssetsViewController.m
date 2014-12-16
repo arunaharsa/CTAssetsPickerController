@@ -155,6 +155,7 @@ NSString * const CTAssetsSupplementaryViewIdentifier = @"CTAssetsSupplementaryVi
     self.toolbarItems = self.picker.toolbarItems;
 }
 
+#define kTriangleWidth 18
 - (void)setupAssets
 {
 	UIButton *navTitleButton = [UIButton buttonWithType:UIButtonTypeSystem];
@@ -169,10 +170,10 @@ NSString * const CTAssetsSupplementaryViewIdentifier = @"CTAssetsSupplementaryVi
 	// dropdown image
 	[navTitleButton setImage:[UIImage imageNamed:@"CTAssetsDropdownTitle"] forState:UIControlStateNormal];
 	[navTitleButton setTintColor:[UIColor blackColor]];
-	[navTitleButton setImageEdgeInsets:UIEdgeInsetsMake(0, navTitleButton.titleLabel.frame.size.width, 0, -navTitleButton.titleLabel.frame.size.width - 10.0)];
-	[navTitleButton setTitleEdgeInsets:UIEdgeInsetsMake(0, -navTitleButton.imageView.frame.size.width, 0, navTitleButton.imageView.frame.size.width)];
+
+	[navTitleButton setImageEdgeInsets:UIEdgeInsetsMake(0, -10, 0, 0)];
 	self.navigationItem.titleView = navTitleButton;
-	
+    
     if (!self.assets)
         self.assets = [[NSMutableArray alloc] init];
     else
@@ -188,7 +189,6 @@ NSString * const CTAssetsSupplementaryViewIdentifier = @"CTAssetsSupplementaryVi
     
     [self.assetsGroup enumerateAssetsUsingBlock:resultsBlock];
 }
-
 
 #pragma mark - Collection View Layout
 
